@@ -107,8 +107,15 @@ const state = {
   selectedPickup: null,
   swipeCount: 0,
   swipeHistory: [],
-  orderPlaced: false
+  swipeLoginPrompted: false,
+  orderPlaced: false,
+  isLoggedIn: false,
+  pendingAuthAction: null,
+  authMode: 'login'
 };
+
+const FREE_SAVE_LIMIT = 1;
+const SWIPE_LOGIN_THRESHOLD = 4;
 
 const coffeePhotoPool = [
   'https://images.unsplash.com/photo-1497636577773-f1231844b336?auto=format&fit=crop&w=900&q=80',
@@ -133,16 +140,22 @@ const tasteProfile = document.getElementById('tasteProfile');
 const cancelPickupButton = document.getElementById('cancelPickupOrder');
 let passButton = null;
 let saveButton = null;
-const pickupButton = document.getElementById('pickupButton');
 const useLocationButton = document.getElementById('useLocationButton');
 const placePickupOrder = document.getElementById('placePickupOrder');
 const ratingModal = document.getElementById('ratingModal');
 const closeRatingModal = document.getElementById('closeRatingModal');
 const submitRating = document.getElementById('submitRating');
 const rateLink = document.getElementById('rateLink');
-const triedToggle = document.getElementById('triedToggle');
-const triedBody = document.getElementById('triedBody');
-const openNowText = document.getElementById('openNowText');
+const loginModal = document.getElementById('loginModal');
+const closeLoginModal = document.getElementById('closeLoginModal');
+const submitLogin = document.getElementById('submitLogin');
+const loginEmail = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
+const loginEyebrow = document.getElementById('loginEyebrow');
+const loginTitleEl = document.getElementById('loginTitle');
+const loginCopyText = document.getElementById('loginCopyText');
+const authSwitchText = document.getElementById('authSwitchText');
+const authModeToggle = document.getElementById('authModeToggle');
 
 function haversineDistanceMiles(lat1, lon1, lat2, lon2) {
   const toRadians = (degrees) => (degrees * Math.PI) / 180;
@@ -261,7 +274,7 @@ function getTasteProfileSummary() {
   }
 
   if (!referenceCoffees.length) {
-    return 'Your taste profile is still brewing. Swipe a few more to see your vibe.';
+    return `Keep swiping — your coffee personality unlocks after ${SWIPE_LOGIN_THRESHOLD} picks.`;
   }
 
   const scores = {
@@ -312,8 +325,8 @@ function getTasteProfileSummary() {
 function updateTasteProfile() {
   if (!tasteProfile) return;
 
-  if (state.swipeCount < 5) {
-    tasteProfile.textContent = 'Your taste profile is still brewing. Swipe a few more to see your vibe.';
+  if (state.swipeCount < SWIPE_LOGIN_THRESHOLD) {
+    tasteProfile.textContent = `Keep swiping — your coffee personality unlocks after ${SWIPE_LOGIN_THRESHOLD} picks.`;
     return;
   }
 
@@ -454,7 +467,6 @@ function renderCardMetrics() {
 function syncCardsWithCurrentCoffee() {
   const visible = getVisibleCoffees();
   const currentCard = cardStage.querySelector('.coffee-card');
-  const currentPickupButton = currentCard ? currentCard.querySelector('#pickupButton') : null;
 
   if (!visible.length) {
     if (currentCard) {
@@ -462,11 +474,6 @@ function syncCardsWithCurrentCoffee() {
       if (statusPill) statusPill.textContent = 'Closed';
       statusPill?.classList.remove('open');
       statusPill?.classList.add('closed');
-    }
-    if (currentPickupButton) {
-      currentPickupButton.textContent = 'Closed';
-      currentPickupButton.disabled = true;
-      currentPickupButton.classList.add('disabled');
     }
     renderCardMetrics();
     return;
@@ -485,12 +492,6 @@ function syncCardsWithCurrentCoffee() {
     if (secondaryPill) {
       secondaryPill.textContent = currentCoffee.open ? 'Pick-up available' : 'Pickup unavailable';
     }
-  }
-
-  if (currentPickupButton) {
-    currentPickupButton.textContent = currentCoffee.open ? 'Pick up' : 'Closed';
-    currentPickupButton.disabled = !currentCoffee.open;
-    currentPickupButton.classList.toggle('disabled', !currentCoffee.open);
   }
 
   renderCardMetrics();
@@ -571,12 +572,6 @@ function renderCurrentCard() {
     saveButton.addEventListener('click', () => saveCurrentCoffee());
   }
 
-  const pickupInlineButton = card.querySelector('#pickupButton');
-  if (pickupInlineButton) {
-    pickupInlineButton.addEventListener('click', () => {
-      placeOrderForPickup();
-    });
-  }
   syncCardsWithCurrentCoffee();
 }
 
@@ -620,17 +615,29 @@ function attachDragInteractions(card) {
   card.addEventListener('pointerdown', pointerDown);
 }
 
-function skipCurrentCoffee() {
-  const visible = getVisibleCoffees();
-  if (!visible.length) return;
-
-  const coffee = visible[state.currentIndex];
+function recordSwipe(coffee) {
   state.swipeCount += 1;
   state.swipeHistory.push(coffee);
   if (state.swipeHistory.length > 12) {
     state.swipeHistory = state.swipeHistory.slice(-12);
   }
   updateTasteProfile();
+  maybePromptLoginForSwipeLimit();
+}
+
+function maybePromptLoginForSwipeLimit() {
+  if (state.isLoggedIn || state.swipeLoginPrompted) return;
+  if (state.swipeCount < SWIPE_LOGIN_THRESHOLD) return;
+
+  state.swipeLoginPrompted = true;
+  requireLogin({ type: 'swipeLimit' });
+}
+
+function skipCurrentCoffee() {
+  const visible = getVisibleCoffees();
+  if (!visible.length) return;
+
+  recordSwipe(visible[state.currentIndex]);
 
   state.currentIndex = (state.currentIndex + 1) % visible.length;
   renderCurrentCard();
@@ -641,46 +648,80 @@ function saveCurrentCoffee() {
   if (!visible.length) return;
 
   const coffee = visible[state.currentIndex];
+  const alreadySaved = state.favorites.some((item) => item.id === coffee.id);
+
+  if (!alreadySaved && state.favorites.length >= FREE_SAVE_LIMIT && !state.isLoggedIn) {
+    requireLogin({ type: 'save', coffee });
+    return;
+  }
+
+  commitSaveCoffee(coffee);
+}
+
+function commitSaveCoffee(coffee) {
+  const visible = getVisibleCoffees();
+  if (!visible.length) return;
 
   if (!state.favorites.some((item) => item.id === coffee.id)) {
     state.favorites.unshift(coffee);
   }
 
-  state.swipeCount += 1;
-  state.swipeHistory.push(coffee);
-  if (state.swipeHistory.length > 12) {
-    state.swipeHistory = state.swipeHistory.slice(-12);
-  }
-  updateTasteProfile();
+  recordSwipe(coffee);
 
   state.currentIndex = (state.currentIndex + 1) % visible.length;
   renderCurrentCard();
   renderFavorites();
 }
 
-function markAsTried() {
-  const visible = getVisibleCoffees();
-  if (!visible.length) return;
-
-  const coffee = visible[state.currentIndex];
-  if (!state.tried.some((item) => item.id === coffee.id)) {
-    state.tried.unshift(coffee);
-  }
-
-  state.pendingCoffee = coffee;
-  openRatingModal();
-
-  state.currentIndex = (state.currentIndex + 1) % visible.length;
-  renderCurrentCard();
-  renderTriedList();
+function openLoginModal() {
+  state.authMode = 'login';
+  applyAuthModeUI();
+  loginModal.classList.remove('hidden');
+  loginModal.setAttribute('aria-hidden', 'false');
 }
 
-function toggleTriedSection() {
-  const isCollapsed = triedBody.classList.toggle('collapsed');
-  triedToggle.setAttribute('aria-expanded', String(!isCollapsed));
-  const arrow = triedToggle.querySelector('.toggle-arrow');
-  if (arrow) {
-    arrow.textContent = isCollapsed ? '▸' : '▾';
+function applyAuthModeUI() {
+  const isSignup = state.authMode === 'signup';
+  loginEyebrow.textContent = isSignup ? 'Welcome' : 'Almost there';
+  loginTitleEl.textContent = isSignup ? 'Create your account' : 'Log in to keep going';
+  loginCopyText.textContent = isSignup
+    ? 'Set up a free Cup\'d account to save more coffees and place pickup orders.'
+    : 'Your first save is on us. Log in to save more coffees and place pickup orders.';
+  submitLogin.textContent = isSignup ? 'Create account' : 'Log in';
+  authSwitchText.textContent = isSignup ? 'Already have an account?' : 'New to Cup\'d?';
+  authModeToggle.textContent = isSignup ? 'Log in' : 'Create an account';
+}
+
+function toggleAuthMode() {
+  state.authMode = state.authMode === 'login' ? 'signup' : 'login';
+  applyAuthModeUI();
+}
+
+function closeLoginModalHandler() {
+  loginModal.classList.add('hidden');
+  loginModal.setAttribute('aria-hidden', 'true');
+}
+
+function requireLogin(action) {
+  if (state.isLoggedIn) return true;
+  state.pendingAuthAction = action;
+  openLoginModal();
+  return false;
+}
+
+function completeLogin() {
+  state.isLoggedIn = true;
+  closeLoginModalHandler();
+
+  const action = state.pendingAuthAction;
+  state.pendingAuthAction = null;
+
+  if (!action) return;
+
+  if (action.type === 'save') {
+    commitSaveCoffee(action.coffee);
+  } else if (action.type === 'order') {
+    commitPlaceOrder(action.coffee);
   }
 }
 
@@ -711,6 +752,12 @@ function placeOrderForPickup() {
   const currentCoffee = getVisibleCoffees()[state.currentIndex];
   if (!currentCoffee) return;
 
+  if (!requireLogin({ type: 'order', coffee: currentCoffee })) return;
+
+  commitPlaceOrder(currentCoffee);
+}
+
+function commitPlaceOrder(coffee) {
   if (state.orderPlaced) {
     state.selectedPickup = null;
     state.orderPlaced = false;
@@ -719,7 +766,7 @@ function placeOrderForPickup() {
     return;
   }
 
-  state.selectedPickup = currentCoffee;
+  state.selectedPickup = coffee;
   state.orderPlaced = true;
   updatePickupSummary();
   syncOrderButtons();
@@ -864,12 +911,6 @@ if (saveButton) {
   });
 }
 
-if (pickupButton) {
-  pickupButton.addEventListener('click', () => {
-    placeOrderForPickup();
-  });
-}
-
 rateLink.addEventListener('click', (event) => {
   event.preventDefault();
   const currentCoffee = getVisibleCoffees()[state.currentIndex];
@@ -878,10 +919,26 @@ rateLink.addEventListener('click', (event) => {
   openRatingModal();
 });
 
-triedToggle.addEventListener('click', toggleTriedSection);
-
 useLocationButton.addEventListener('click', () => {
   useCurrentLocation();
+});
+
+closeLoginModal.addEventListener('click', () => {
+  closeLoginModalHandler();
+});
+
+submitLogin.addEventListener('click', () => {
+  completeLogin();
+});
+
+authModeToggle.addEventListener('click', () => {
+  toggleAuthMode();
+});
+
+loginModal.addEventListener('click', (event) => {
+  if (event.target === loginModal) {
+    closeLoginModalHandler();
+  }
 });
 
 placePickupOrder.addEventListener('click', () => {

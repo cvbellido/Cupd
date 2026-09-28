@@ -8,6 +8,7 @@
       name="description"
       content="Cup'd helps you discover nearby coffee, save drinks to try, and rate your café experiences."
     />
+    <link rel="icon" type="image/png" href="./assets/cupd.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -70,11 +71,16 @@
         </section>
 
         <aside class="sidebar" aria-label="Saved coffee picks">
+          <div class="panel-card taste-panel">
+            <p class="eyebrow">Coffee DNA</p>
+            <h3>What's your pour-sonality?</h3>
+            <div id="tasteProfile" class="taste-profile">Keep swiping — your coffee personality unlocks after 4 picks.</div>
+          </div>
+
           <div class="panel-card accent-panel">
             <p class="eyebrow">Pickup order</p>
             <h3>Meet your date</h3>
             <div id="pickupSummary" class="pickup-summary">No order started yet.</div>
-            <div id="tasteProfile" class="taste-profile">Your taste profile is still brewing. Swipe a few more to see your vibe.</div>
             <div class="order-actions">
               <button class="order-button" id="placePickupOrder" type="button">
                 Place pickup order
@@ -97,17 +103,14 @@
           </div>
 
           <div class="panel-card tried-panel">
-            <button class="panel-toggle" id="triedToggle" type="button" aria-expanded="true">
+            <div class="panel-header">
               <div>
                 <p class="eyebrow">Already tried</p>
-                <h3>Recent reviews</h3>
+                <h3>Reviews</h3>
               </div>
-              <span class="toggle-arrow">▾</span>
-            </button>
-            <div class="tried-body" id="triedBody">
               <span class="summary-pill" id="triedCount">0</span>
-              <ul class="favorites-list" id="triedList"></ul>
             </div>
+            <ul class="favorites-list" id="triedList"></ul>
           </div>
         </aside>
       </main>
@@ -141,6 +144,39 @@
         </div>
 
         <button class="submit-rating" id="submitRating" type="button">Save review</button>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="loginModal" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow" id="loginEyebrow">Almost there</p>
+            <h3 id="loginTitle">Log in to keep going</h3>
+          </div>
+          <button class="close-modal" id="closeLoginModal" type="button" aria-label="Close login">
+            ×
+          </button>
+        </div>
+
+        <p class="login-copy" id="loginCopyText">Your first save is on us. Log in to save more coffees and place pickup orders.</p>
+
+        <div class="field-group">
+          <label for="loginEmail">Email</label>
+          <input class="field-input" type="email" id="loginEmail" placeholder="you@example.com" />
+        </div>
+
+        <div class="field-group">
+          <label for="loginPassword">Password</label>
+          <input class="field-input" type="password" id="loginPassword" placeholder="••••••••" />
+        </div>
+
+        <button class="submit-rating" id="submitLogin" type="button">Log in</button>
+
+        <p class="auth-switch">
+          <span id="authSwitchText">New to Cup'd?</span>
+          <button class="link-button" id="authModeToggle" type="button">Create an account</button>
+        </p>
       </div>
     </div>
 

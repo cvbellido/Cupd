@@ -104,14 +104,25 @@ button {
 .brand-mark {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(187, 247, 100, 0.32);
+  border-radius: 15px;
+  background: linear-gradient(145deg, rgba(187, 247, 100, 0.14), rgba(27, 23, 25, 0.98) 68%);
+  box-shadow: 0 0 18px rgba(187, 247, 100, 0.16), inset 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .brand-logo {
   display: none;
-  width: 118px;
-  height: auto;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.32);
+  transform-origin: center;
 }
 
 .brand-logo.is-loaded {
@@ -120,9 +131,9 @@ button {
 
 .brand-wordmark {
   color: var(--accent);
-  font-size: 1.65rem;
+  font-size: 0.8rem;
   font-weight: 900;
-  letter-spacing: -0.06em;
+  letter-spacing: -0.04em;
 }
 
 .brand-copy {
@@ -458,21 +469,17 @@ button {
   padding: 16px 16px 18px;
 }
 
-.panel-header,
-.panel-toggle {
+.panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-}
-
-.panel-header {
   margin-bottom: 12px;
 }
 
 .panel-header h3,
 .accent-panel h3,
-.panel-toggle h3 {
+.taste-panel h3 {
   margin: 0;
   font-size: 1.45rem;
   letter-spacing: -0.05em;
@@ -489,32 +496,6 @@ button {
   background: var(--accent-soft);
   color: var(--text);
   font-weight: 800;
-}
-
-.panel-toggle {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--text);
-  text-align: left;
-}
-
-.toggle-arrow {
-  font-size: 1.3rem;
-  color: var(--muted);
-}
-
-.tried-body {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.tried-body.collapsed {
-  display: none;
 }
 
 .favorites-list {
@@ -584,8 +565,12 @@ button {
   line-height: 1.5;
 }
 
+.taste-panel h3 {
+  margin-bottom: 4px;
+}
+
 .taste-profile {
-  margin-top: 12px;
+  margin-top: 10px;
   padding: 10px 12px;
   border-radius: 14px;
   border: 1px solid rgba(191, 174, 156, 0.25);
@@ -593,6 +578,54 @@ button {
   color: #e7ded6;
   font-size: 0.82rem;
   line-height: 1.5;
+}
+
+.field-group {
+  margin-bottom: 14px;
+}
+
+.field-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.field-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: rgba(187, 247, 100, 0.5);
+}
+
+.login-copy {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.auth-switch {
+  margin: 14px 0 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.link-button {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-weight: 700;
+  padding: 0;
+  text-decoration: underline;
 }
 
 .order-actions {

@@ -1,6 +1,6 @@
 # Cup'd
 
-Cup'd is a responsive coffee-discovery prototype. Browse nearby café drinks, swipe to save or skip, rate places you've tried, and see a taste profile after five swipes.
+Cup'd is a responsive coffee-discovery prototype. Browse nearby café drinks, swipe to save or skip, rate places you've tried, and see a taste profile after four swipes.
 
 ## Run locally
 
@@ -10,20 +10,21 @@ This is a static HTML, CSS, and JavaScript project with no package install or bu
 python3 -m http.server 8000
 ```
 
-Open <http://localhost:8000/activate.html> for the location activation screen or <http://localhost:8000/index.html> for the main app. Geolocation requires permission. Live place lookup uses OpenStreetMap Nominatim and Overpass; if location is unavailable or a lookup fails, the app uses its built-in sample coffee list.
+Open <http://localhost:8000/index.html> for the main app. Geolocation requires permission. Live place lookup uses OpenStreetMap Nominatim and Overpass; if location is unavailable or a lookup fails, the app uses its built-in sample coffee list.
 
 ## Features
 
 - Responsive coffee swipe deck with Skip and Love actions.
-- Favorites and Already tried lists.
+- Favorites and Reviews lists, each with a count next to the headline.
 - Ratings for the café, coffee, and vibe.
-- A taste profile summary after five swipes.
+- A taste profile card that unlocks after four swipes.
+- A combined log in / create account modal, triggered by a second save, a pickup order, or four swipes.
 - Nearby café lookup and an order preview with cancellation.
-- Cup'd wordmark image support with a text fallback.
+- Cup'd wordmark image support, rendered full-bleed in its app-icon tile, with a text fallback.
 
 ## Brand asset
 
-The app uses the supplied logo at `assets/cupd.png`. If it cannot load, it displays the Cup'd text wordmark instead.
+The app uses the supplied logo at `assets/cupd.png`, scaled to fill its rounded app-icon tile edge-to-edge. If it cannot load, it displays the Cup'd text wordmark instead.
 
 ## Prototype limitations
 
