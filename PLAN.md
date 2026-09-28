@@ -5,7 +5,7 @@ Cup'd is a coffee-discovery prototype with a dating-app-inspired swipe flow. Peo
 ## Implemented
 
 - Responsive desktop and mobile interface with a dark #1B1719 surface, warm beige status pills, and lime accents.
-- Cup'd branding, including an image-based wordmark slot at `assets/cupd-logo.png` with a text fallback.
+- Cup'd branding using `assets/cupd.png`, with a text fallback if the image cannot load.
 - Location activation screen with a location-permission prompt and a visual map preview.
 - Nearby café discovery using browser geolocation, OpenStreetMap Nominatim reverse geocoding, and the Overpass API; a local fallback list is used if location or live lookup fails.
 - Swipe, Skip, and Love interactions for browsing and saving coffee, matcha, and tea options.

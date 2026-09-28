@@ -23,7 +23,7 @@ Open <http://localhost:8000/activate.html> for the location activation screen or
 
 ## Brand asset
 
-The app looks for the supplied logo at `assets/cupd-logo.png`. If it is absent or cannot load, it displays the Cup'd text wordmark instead. Keep this asset path when adding the PNG.
+The app uses the supplied logo at `assets/cupd.png`. If it cannot load, it displays the Cup'd text wordmark instead.
 
 ## Prototype limitations
 
